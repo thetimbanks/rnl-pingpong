@@ -31,7 +31,7 @@
         
         // initialize the connection to the pingpong service in the RNL Ping Pong application
         // credentials are optional, anonymous access used if omitted
-        $data.initService(apiKey /*, credentials */).then(function(pingpong, factory, type){
+        $data.initService(apiKey).then(function(pingpong, factory, type){
             // "pingpong" is your data context
             // "factory" is a context factory method
             // "type" is your context type
@@ -64,37 +64,43 @@
                 winner.new_rating = calculate_new_rating(winner, 1);
                 loser.new_rating = calculate_new_rating(loser, 0);
 
-                pingpong.Users.single(
-                  function (u) {
-                      return u.id == this.id
-                  }, {"id": winner.id},
-                  function (u) {
-                      pingpong.Users.attach(u);
-                      u.score = winner.new_rating;
-                      pingpong.Users.saveChanges(function () {
-                          show_users();
-                      });
-                  });
+                var rating_change = function(user) {
+                  return user.new_rating - user.rating;
+                }
 
-                pingpong.Users.single(
-                  function (u) {
-                      return u.id == this.id
-                  }, {"id": loser.id},
-                  function (u) {
-                      pingpong.Users.attach(u);
-                      u.score = loser.new_rating;
-                      pingpong.Users.saveChanges(function () {
-                          show_users();
-                      });
-                  });
+                var get_winner = function() { 
+                  return pingpong.Users.single(
+                    function (u) {
+                        return u.id == this.id
+                    }, {"id": winner.id},
+                    function (u) {
+                        pingpong.Users.attach(u);
+                        u.score = winner.new_rating;
+                        pingpong.Users.saveChanges(show_users);
+                    });
+                }
 
-                pingpong.Games.add({
-                    winner: winner.id,
-                    winner_score: parseInt(form.winner_score.value),
-                    winner_rating_change: winner.new_rating - winner.rating,
-                    loser: loser.id,
-                    loser_score: parseInt(form.loser_score.value),
-                    loser_rating_change: loser.rating - loser.new_rating
+                var get_loser = function() { 
+                  return pingpong.Users.single(
+                    function (u) {
+                        return u.id == this.id
+                    }, {"id": loser.id},
+                    function (u) {
+                        pingpong.Users.attach(u);
+                        u.score = loser.new_rating;
+                        pingpong.Users.saveChanges(show_users);
+                    });
+                }
+
+                $.when(get_winner(), get_loser(), rating_change(winner)).done(function(winner, loser, rating_change) {
+                  pingpong.Games.add({
+                      winner: winner.id,
+                      winner_score: parseInt(form.winner_score.value),
+                      loser: loser.id,
+                      loser_score: parseInt(form.loser_score.value),
+                      rating_change: rating_change
+                  });
+                  pingpong.Games.saveChanges();
                 });
                   
                 //prevent form submit
@@ -220,7 +226,7 @@
 
     <script id="User" type="x-handlebars-template">
       <tr>
-        <td>{{name}}</td> 
+        <td><a href="user.html?id={{id}}" data-ajax="false">{{name}}</a></td> 
         <td>{{score}}</td>
       </td>
     </script>

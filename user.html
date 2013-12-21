@@ -38,6 +38,8 @@
                 }, {"id": getUrlVars()["id"]},
                 function (user) {
                     $("#user-name").text(user.name);
+                    $("#wins").text(user.wins);
+                    $("#losses").text(user.losses);
 
                     pingpong.Games.filter(
                       function (g) {
@@ -52,7 +54,7 @@
                         }, {"id": opponent},
                         function (opponent) {
                            var rating_change = g.winner == user.id? "+" + g.rating_change : "-" + g.rating_change;
-                           $("#game-list").append("<tr><td>" + opponent.name + "</td><td>" + g.winner_score + "-" + g.loser_score + "</td><td>" + rating_change + "</td></tr>"); 
+                           $("#game-list").append("<tr><td>" + ((g.winner == user.id)? "W" : "L") + "</td><td>" + opponent.name + "</td><td>" + g.winner_score + "-" + g.loser_score + "</td><td>" + rating_change + "</td></tr>"); 
                         });
                     });
                 });
@@ -85,11 +87,22 @@
     </div><!-- /header -->
 
     <div role="main" class="ui-content">
-      <A href="javascript:window.history.back()">Back</a><br>
+      <A href="javascript:window.history.back()">Back</a><br><br>
+
+      <div class="ui-corner-all custom-corners">
+        <div class="ui-bar ui-bar-a">
+          <h3>Record</h3>
+        </div>
+        <div class="ui-body ui-body-a">
+      <span id="wins"></span> - <span id="losses"></span>
+        </div>
+      </div>
+<br>
       
       <table data-role="table" data-mode="table" class="table-stroke">
        <thead>
          <tr>
+           <th></th>
            <th>Opponent</th>
            <th>Score</th>
            <th>Rating change</th>

@@ -41,6 +41,8 @@
                 .orderByDescending("it.score");
               users.renderTo("#user-list");
               users.renderTo(".user-select", "replace", "User-Select");
+
+              setTimeout(function() { $(".user-select").trigger("change"); }, 500)
             }
 
             show_users();
@@ -76,6 +78,7 @@
                     function (u) {
                         pingpong.Users.attach(u);
                         u.score = winner.new_rating;
+                        u.wins = u.wins + 1;
                         pingpong.Users.saveChanges(show_users);
                     });
                 }
@@ -88,6 +91,7 @@
                     function (u) {
                         pingpong.Users.attach(u);
                         u.score = loser.new_rating;
+                        u.losses = u.losses + 1;
                         pingpong.Users.saveChanges(show_users);
                     });
                 }
@@ -112,7 +116,9 @@
                 
                 pingpong.Users.add({
                     name: form.name.value,
-                    score: 1500
+                    score: 1500,
+                    wins: 0,
+                    losses: 0
                 });
                   
                 pingpong.Users.saveChanges().then(show_users);
@@ -144,19 +150,6 @@
        <tbody id="user-list">
        </tbody>
       </table>
-<br>
-      <div class="ui-corner-all custom-corners">
-        <div class="ui-bar ui-bar-a">
-          <h3>Add Player</h3>
-        </div>
-        <div class="ui-body ui-body-a">
-          <form id="new-player" data-ajax="false">
-             <div>Name:</div>
-             <input name="name" type="text"/><br />
-             <input type="submit" value="Add Player" />   
-          </form>
-        </div>
-      </div>
 <br>
       <div class="ui-corner-all custom-corners">
         <div class="ui-bar ui-bar-a">
@@ -219,6 +212,19 @@
 
              <input type="submit" value="Save Game" />   
          </form>
+        </div>
+      </div>
+<br>
+      <div class="ui-corner-all custom-corners">
+        <div class="ui-bar ui-bar-a">
+          <h3>Add Player</h3>
+        </div>
+        <div class="ui-body ui-body-a">
+          <form id="new-player" data-ajax="false">
+             <div>Name:</div>
+             <input name="name" type="text"/><br />
+             <input type="submit" value="Add Player" />   
+          </form>
         </div>
       </div>
     </div><!-- /content -->

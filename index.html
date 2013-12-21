@@ -46,31 +46,31 @@
             show_users();
 
             function calculate_chance_of_winning(player1, player2) {
-              return 1 / (1+Math.pow(10, (player2[1] - player1[1])/400));
+              return 1 / (1+Math.pow(10, (player2.rating - player1.rating)/400));
             }
 
             function calculate_new_rating(player, is_winner) {
-              return Math.round(parseInt(player[1]) + 32*(is_winner - player[2]));
+              return Math.round(parseInt(player.rating) + 32*(is_winner - player.chance));
             }
 
             $(document).delegate("#new-game", "submit", function() {
                 var form = this,
-                    winner = form.winner.value.split("-"),
-                    loser = form.loser.value.split("-");
+                    winner = $.parseJSON(form.winner.value),
+                    loser = $.parseJSON(form.loser.value);
 
-                winner[2] = calculate_chance_of_winning(winner, loser);
-                loser[2] = calculate_chance_of_winning(loser, winner);
+                winner.chance = calculate_chance_of_winning(winner, loser);
+                loser.chance = calculate_chance_of_winning(loser, winner);
 
-                winner[1] = calculate_new_rating(winner, 1);
-                loser[1] = calculate_new_rating(loser, 0);
+                winner.new_rating = calculate_new_rating(winner, 1);
+                loser.new_rating = calculate_new_rating(loser, 0);
 
                 pingpong.Users.single(
                   function (u) {
                       return u.id == this.id
-                  }, {"id": winner[0]},
+                  }, {"id": winner.id},
                   function (u) {
                       pingpong.Users.attach(u);
-                      u.score = winner[1];
+                      u.score = winner.new_rating;
                       pingpong.Users.saveChanges(function () {
                           show_users();
                       });
@@ -79,16 +79,24 @@
                 pingpong.Users.single(
                   function (u) {
                       return u.id == this.id
-                  }, {"id": loser[0]},
+                  }, {"id": loser.id},
                   function (u) {
                       pingpong.Users.attach(u);
-                      u.score = loser[1];
+                      u.score = loser.new_rating;
                       pingpong.Users.saveChanges(function () {
                           show_users();
                       });
                   });
+
+                pingpong.Games.add({
+                    winner: winner.id,
+                    winner_score: parseInt(form.winner_score.value),
+                    winner_rating_change: winner.new_rating - winner.rating,
+                    loser: loser.id,
+                    loser_score: parseInt(form.loser_score.value),
+                    loser_rating_change: loser.rating - loser.new_rating
+                });
                   
-                //pingpong.Users.saveChanges().then(show_users);
                 //prevent form submit
                 return false;
             });
@@ -150,10 +158,59 @@
         </div>
         <div class="ui-body ui-body-a">
           <form id="new-game" data-ajax="false">
-             <div>Winner:</div>
-             <select name="winner" class="user-select"></select><br />
-             <div>Loser:</div>
-             <select name="loser" class="user-select"></select><br />
+             <label for="select-winner" class="select">Winner</label>
+             <select name="winner" id="select-winner" class="user-select"></select><br />
+
+             <label for="select-winner-score" class="select">Winning Score</label>
+             <select name="winner_score" id="select-winner-score">
+               <option value="11">11</option>
+               <option value="12">12</option>
+               <option value="13">13</option>
+               <option value="14">14</option>
+               <option value="15">15</option>
+               <option value="16">16</option>
+               <option value="17">17</option>
+               <option value="18">18</option>
+               <option value="19">19</option>
+               <option value="20">20</option>
+               <option value="21">21</option>
+               <option value="22">22</option>
+               <option value="23">23</option>
+               <option value="24">24</option>
+               <option value="25">25</option>
+             </select><br />
+
+             <label for="select-loser" class="select">Loser</label>
+             <select name="loser" id="select-loser" class="user-select"></select><br />
+
+             <label for="select-loser-score" class="select">Losing Score</label>
+             <select name="loser_score" id="select-loser-score">
+               <option value="0">0</option>
+               <option value="1">1</option>
+               <option value="2">2</option>
+               <option value="3">3</option>
+               <option value="4">4</option>
+               <option value="5">5</option>
+               <option value="6">6</option>
+               <option value="7">7</option>
+               <option value="8">8</option>
+               <option value="9">9</option>
+               <option value="10">10</option>
+               <option value="11">11</option>
+               <option value="12">12</option>
+               <option value="13">13</option>
+               <option value="14">14</option>
+               <option value="15">15</option>
+               <option value="16">16</option>
+               <option value="17">17</option>
+               <option value="18">18</option>
+               <option value="19">19</option>
+               <option value="20">20</option>
+               <option value="21">21</option>
+               <option value="22">22</option>
+               <option value="23">23</option>
+             </select><br />
+
              <input type="submit" value="Save Game" />   
          </form>
         </div>
@@ -168,7 +225,7 @@
       </td>
     </script>
     <script id="User-Select" type="x-handlebars-template">
-      <option value="{{id}}-{{score}}">{{name}}</option>
+      <option value='{"id": "{{id}}", "rating": {{score}} }'>{{name}}</option>
     </script>
   </body>
 </html>

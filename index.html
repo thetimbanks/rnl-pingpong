@@ -18,7 +18,7 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>Rnl-pingpong by thetimbanks</title>
+    <title>RNL Ping Pong Leaderboard</title>
 
     <script>
         // this is your API key to access the pingpong service in the RNL Ping Pong application
@@ -35,9 +35,14 @@
             // "factory" is a context factory method
             // "type" is your context type
             
-            pingpong.Users
-                .orderByDescending("it.score")
-                .renderTo("#user-list");
+            function show_users() {
+              var users = pingpong.Users
+                .orderByDescending("it.score");
+              users.renderTo("#user-list");
+              users.renderTo(".user-select", "replace", "User-Select");
+            }
+
+            show_users();
             
             // get all data from the Users table
             /*pingpong.Users.toArray(function(result){
@@ -68,6 +73,67 @@
                     console.log(cnt + ' element changes processed and saved.');
                 });
             });*/
+
+function calculate_chance_of_winning(player1, player2) {
+  return 1 / (1+Math.pow(10, (player2[1] - player1[1])/400));
+}
+
+function calculate_new_rating(player, is_winner) {
+  return Math.round(parseInt(player[1]) + 32*(is_winner - player[2]));
+}
+
+            $(document).delegate("#new-game", "submit", function() {
+                var form = this,
+                    winner = form.winner.value.split("-"),
+                    loser = form.loser.value.split("-");
+
+                winner[2] = calculate_chance_of_winning(winner, loser);
+                loser[2] = calculate_chance_of_winning(loser, winner);
+
+                winner[1] = calculate_new_rating(winner, 1);
+                loser[1] = calculate_new_rating(loser, 0);
+
+                pingpong.Users.single(
+                  function (u) {
+                      return u.id == this.id
+                  }, {"id": winner[0]},
+                  function (u) {
+                      pingpong.Users.attach(u);
+                      u.score = winner[1];
+                      pingpong.Users.saveChanges(function () {
+                          show_users();
+                      });
+                  });
+
+                pingpong.Users.single(
+                  function (u) {
+                      return u.id == this.id
+                  }, {"id": loser[0]},
+                  function (u) {
+                      pingpong.Users.attach(u);
+                      u.score = loser[1];
+                      pingpong.Users.saveChanges(function () {
+                          show_users();
+                      });
+                  });
+                  
+                //pingpong.Users.saveChanges().then(show_users);
+                //prevent form submit
+                return false;
+            });
+
+            $(document).delegate("#new-player", "submit", function() {
+                var form = this;
+                
+                pingpong.Users.add({
+                    name: form.name.value,
+                    score: 1500
+                });
+                  
+                pingpong.Users.saveChanges().then(show_users);
+                //prevent form submit
+                return false;
+            });
         }).fail(function(err){
             console.error('Connection failed.');
             console.error(err);
@@ -87,9 +153,27 @@
         <hr>
 
         <section id="main_content">
-          <ul id="user-list"></ul>
+          <ol id="user-list"></ol>
+        </section>
 
+        <section>
+           <h3>Add new player<h3>
+           <form id="new-player">
+                 <div>Name:</div>
+                 <input name="name" type="text"/><br />
+                 <input type="submit" value="Add Player" />   
+           </form>
+        </section>
 
+        <section>
+           <h3>New Game<h3>
+           <form id="new-game">
+                 <div>Winner:</div>
+                 <select name="winner" class="user-select"></select><br />
+                 <div>Loser:</div>
+                 <select name="loser" class="user-select"></select><br />
+                 <input type="submit" value="Save Game" />   
+           </form>
         </section>
 
         <footer>
@@ -105,6 +189,9 @@
       <li class="user-item">
           <span>{{name}}</span> - {{score}}
       </li>
+    </script>
+    <script id="User-Select" type="x-handlebars-template">
+      <option value="{{id}}-{{score}}">{{name}}</option>
     </script>
   </body>
 </html>

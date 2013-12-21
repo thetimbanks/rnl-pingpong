@@ -3,12 +3,12 @@
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <script src="http://code.jquery.com/jquery.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.css" />
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.0/jquery.mobile-1.4.0.min.js"></script>
+
     <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.rc.1/handlebars.min.js"></script>
     <script src="http://include.jaydata.org/datajs-1.0.3.min.js" type="text/javascript"></script>
     <script src="http://include.jaydata.org/jaydata.min.js" type="text/javascript"></script>
@@ -21,6 +21,7 @@
     <title>RNL Ping Pong Leaderboard</title>
 
     <script>
+    $(function() {
         // this is your API key to access the pingpong service in the RNL Ping Pong application
         var apiKey = {
             ownerId: '99833845-15b4-46c1-8bcd-8efdff0cca8a',
@@ -43,44 +44,14 @@
             }
 
             show_users();
-            
-            // get all data from the Users table
-            /*pingpong.Users.toArray(function(result){
-                // "result" is the actual data in a simple Array
-                
-                // add a new element to the Users table
-                pingpong.Users.add({
-                    name: <some value>,
-                    score: <some value>
-                });
-                
-                // we want to update the first element, so we attach it
-                var updated = result[0];
-                pingpong.Users.attach(updated);
-                
-                // and set the name field of the element
-                updated.name = <some other value>;
-                
-                // remove the second element
-                var removed = result[1];
-                pingpong.Users.remove(removed);
-                
-                // after we create, update or remove an element
-                // we have to call the "saveChanges" method
-                // to send the modifications to the server
-                pingpong.saveChanges(function(cnt){
-                    // "cnt" is the number of elements successfully processed on the server on "saveChanges"
-                    console.log(cnt + ' element changes processed and saved.');
-                });
-            });*/
 
-function calculate_chance_of_winning(player1, player2) {
-  return 1 / (1+Math.pow(10, (player2[1] - player1[1])/400));
-}
+            function calculate_chance_of_winning(player1, player2) {
+              return 1 / (1+Math.pow(10, (player2[1] - player1[1])/400));
+            }
 
-function calculate_new_rating(player, is_winner) {
-  return Math.round(parseInt(player[1]) + 32*(is_winner - player[2]));
-}
+            function calculate_new_rating(player, is_winner) {
+              return Math.round(parseInt(player[1]) + 32*(is_winner - player[2]));
+            }
 
             $(document).delegate("#new-game", "submit", function() {
                 var form = this,
@@ -138,57 +109,63 @@ function calculate_new_rating(player, is_winner) {
             console.error('Connection failed.');
             console.error(err);
         });
+    });
     </script>
   </head>
 
   <body>
-    <div id="container">
-      <div class="inner">
+  <div data-role="page">
+    <div data-role="header">
+      <h1>Ping Pong Leaderboard</h1>
+    </div><!-- /header -->
 
-        <header>
-          <h1>RNL Ping Pong Leaderboard</h1>
-          <h2>Ping pong rankings for RNL employees</h2>
-        </header>
-
-        <hr>
-
-        <section id="main_content">
-          <ol id="user-list"></ol>
-        </section>
-
-        <section>
-           <h3>Add new player<h3>
-           <form id="new-player">
-                 <div>Name:</div>
-                 <input name="name" type="text"/><br />
-                 <input type="submit" value="Add Player" />   
-           </form>
-        </section>
-
-        <section>
-           <h3>New Game<h3>
-           <form id="new-game">
-                 <div>Winner:</div>
-                 <select name="winner" class="user-select"></select><br />
-                 <div>Loser:</div>
-                 <select name="loser" class="user-select"></select><br />
-                 <input type="submit" value="Save Game" />   
-           </form>
-        </section>
-
-        <footer>
-          Rnl-pingpong is maintained by <a href="https://github.com/thetimbanks">thetimbanks</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-
-        
+    <div role="main" class="ui-content">
+      <table data-role="table" data-mode="table" class="table-stroke">
+       <thead>
+         <tr>
+           <th>Player</th>
+           <th>Rating</th>
+         </tr>
+       </thead>
+       <tbody id="user-list">
+       </tbody>
+      </table>
+<br>
+      <div class="ui-corner-all custom-corners">
+        <div class="ui-bar ui-bar-a">
+          <h3>Add Player</h3>
+        </div>
+        <div class="ui-body ui-body-a">
+          <form id="new-player" data-ajax="false">
+             <div>Name:</div>
+             <input name="name" type="text"/><br />
+             <input type="submit" value="Add Player" />   
+          </form>
+        </div>
       </div>
-    </div>
+<br>
+      <div class="ui-corner-all custom-corners">
+        <div class="ui-bar ui-bar-a">
+          <h3>New Game</h3>
+        </div>
+        <div class="ui-body ui-body-a">
+          <form id="new-game" data-ajax="false">
+             <div>Winner:</div>
+             <select name="winner" class="user-select"></select><br />
+             <div>Loser:</div>
+             <select name="loser" class="user-select"></select><br />
+             <input type="submit" value="Save Game" />   
+         </form>
+        </div>
+      </div>
+    </div><!-- /content -->
+  </div>
 
     <script id="User" type="x-handlebars-template">
-      <li class="user-item">
-          <span>{{name}}</span> - {{score}}
-      </li>
+      <tr>
+        <td>{{name}}</td> 
+        <td>{{score}}</td>
+      </td>
     </script>
     <script id="User-Select" type="x-handlebars-template">
       <option value="{{id}}-{{score}}">{{name}}</option>

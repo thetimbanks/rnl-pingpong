@@ -36,16 +36,19 @@
             // "factory" is a context factory method
             // "type" is your context type
             
-            function show_users() {
+            function show_users(renew_dropdowns) {
               var users = pingpong.Users
                 .orderByDescending("it.score");
               users.renderTo("#user-list");
-              users.renderTo(".user-select", "replace", "User-Select");
+              
+              if (renew_dropdowns === true) {
+                users.renderTo(".user-select", "replace", "User-Select");
+              }
 
               setTimeout(function() { $(".user-select").trigger("change"); }, 500)
             }
 
-            show_users();
+            show_users(true);
 
             function calculate_chance_of_winning(player1, player2) {
               return 1 / (1+Math.pow(10, (player2.rating - player1.rating)/400));
@@ -105,6 +108,7 @@
                       rating_change: rating_change
                   });
                   pingpong.Games.saveChanges();
+                  $("#game-saved").show().delay(2500).fadeOut();
                 });
                   
                 //prevent form submit
@@ -121,7 +125,9 @@
                     losses: 0
                 });
                   
-                pingpong.Users.saveChanges().then(show_users);
+                pingpong.Users.saveChanges().then(function() {
+                  show_users(true);
+                });
                 //prevent form submit
                 return false;
             });
@@ -209,6 +215,10 @@
                <option value="22">22</option>
                <option value="23">23</option>
              </select><br />
+
+             <div id="game-saved" style="display: none;color: green; font-weight: bold; text-align: center;">
+                Game Saved!
+             </div>
 
              <input type="submit" value="Save Game" />   
          </form>
